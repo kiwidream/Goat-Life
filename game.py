@@ -29,6 +29,8 @@ class Game:
   TILE_WIDTH = 32
 
   def __init__(self):
+    self.cull_sprites = []
+    self.dungeon_offset = self.TILE_WIDTH * 512
     self.window = pyglet.window.Window()
     self.camera = Camera(self)
     self.keys = key.KeyStateHandler()
@@ -36,8 +38,6 @@ class Game:
     self.world = World(self)
     self.cursor = self.window.CURSOR_DEFAULT
     self.set_cursor = None
-
-
 
 game = Game()
 fps_display = pyglet.clock.ClockDisplay()
@@ -55,7 +55,12 @@ def update(dt):
 pyglet.clock.schedule_interval(update, 1.0/60.0)
 pyglet.clock.set_fps_limit(60)
 
-def transform_mouse_coords(x, y):
+def transform_mouse_coords(x, y, hud=False):
+  if hud:
+    x /= game.camera.hud_zoom
+    y /= game.camera.hud_zoom
+    return x, y
+
   x -= game.camera.width // 2
   y -= game.camera.height // 2
   x /= game.camera.zoom
@@ -66,14 +71,23 @@ def transform_mouse_coords(x, y):
 
 @game.window.event
 def on_mouse_motion(x, y, dx, dy):
-  x, y = transform_mouse_coords(x, y)
-  game.world.on_mouse_motion(x, y, dx, dy)
+  gx, gy = transform_mouse_coords(x, y)
+  hx, hy = transform_mouse_coords(x, y, True)
+  if game.world.inventory:
+    game.world.inventory.on_mouse_motion(hx, hy, dx, dy)
+  game.world.on_mouse_motion(gx, gy, dx, dy)
 
 @game.window.event
 def on_mouse_press(x, y, button, modifiers):
-  x, y = transform_mouse_coords(x, y)
   if button == mouse.LEFT:
-    game.world.on_click(x, y)
+    gx, gy = transform_mouse_coords(x, y)
+    game.world.on_click(gx, gy)
+
+    hx, hy = transform_mouse_coords(x, y, True)
+    if game.world.inventory:
+      game.world.inventory.on_click(hx, hy)
+
+
 
 
 @game.window.event
@@ -85,7 +99,7 @@ def on_draw():
   game.camera.apply_hud()
   game.hud_batch.draw()
   game.world.draw(True)
-  fps_display.draw()
+  #fps_display.draw()
 
 if __name__ == '__main__':
-  cProfile.run('main()')
+  main()#cProfile.run('main()')

@@ -9,13 +9,25 @@ class GrassTile(Tile):
 
   def __init__(self, game, tx, ty, group):
     super().__init__(game, tx, ty, group, 'grass')
-
+    self.group = group
+    self.tx = tx
+    self.ty = ty
     self.grass_tufts = []
-    for i in range(random.randint(0, 6)):
-      blades = (random.randint(0,1) == 0)
+    for i in range(random.randint(0, 2)):
+      self.spawn_grass()
+
+  def spawn_grass(self, anim=False, tx=None, ty=None):
+    tx_offset, ty_offset = 0, 0
+    blades = (random.randint(0,1) == 0)
+
+    if not tx and not ty:
+      tx = self.tx
+      ty = self.ty
       tx_offset, ty_offset = tuple(self.random_offset(blades) for _ in range(2))
-      group = self.game.world.group_for(ty+ty_offset)
-      self.grass_tufts.append(GrassTuft(game, tx+tx_offset, ty+ty_offset, group, blades))
+
+
+    group = self.game.world.group_for(ty+ty_offset)
+    self.grass_tufts.append(GrassTuft(self.game, tx+tx_offset, ty+ty_offset, self.group, blades, anim))
 
   def random_offset(self, blades=False):
     if blades:

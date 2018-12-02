@@ -7,22 +7,35 @@ from particle import Particle
 
 class ParticleGroup(Drawable):
 
-  def __init__(self, game, tx, ty, group, type, decay, lifetime, spawn_rate, spawn_angle, variance, rx=0, ry=0):
+  def __init__(self, game, rtx, rty, z, group, type, decay, lifetime, spawn_rate, vx=0, vy=0, vz=0, rx=0, ry=0, rvx=0, rvy=0, friction=0.985):
+    tx = 0
+    ty = 0
     super().__init__(game, tx, ty)
     self.spawn_period = 1 / spawn_rate
-    self.spawn_angle = spawn_angle
-    self.spawn_angle_variance = variance
     self.spawn_dt = 0
     self.spawning = True
     self.particles = []
     self.type = type
     self.lifetime = lifetime
     self.decay = decay
+    self.friction = friction
     self.group = group
+    self.rtx = rtx
+    self.rty = rty
+    self.base_tx = 0
+    self.base_ty = 0
+    self.z = z
+    self.vx = vx
+    self.vy = vy
+    self.vz = vz
+    self.rvx = rvx
+    self.rvy = rvy
     self.rx = rx
     self.ry = ry
 
   def update(self, dt):
+    self.tx = self.base_tx + self.rtx
+    self.ty = self.base_ty + self.rty
 
     if self.spawning:
       self.spawn_dt += dt
@@ -36,12 +49,12 @@ class ParticleGroup(Drawable):
 
     if self.spawn_dt >= self.spawn_period:
       self.spawn_dt = 0
-      vy = 0
-      vz = 10
-      vx = math.cos(self.spawn_angle + (random.random() - 0.5) * self.spawn_angle_variance) * 1
+      vy = self.vy + (random.random() - 0.5) * self.rvy
+      vz = self.vz
+      vx = self.vx + (random.random() - 0.5) * self.rvx
       offset_tx = (random.random() - 0.5) * self.rx
       offset_ty = (random.random() - 0.5) * self.ry
-      self.particles.append(Particle(self.game, self.tx + offset_tx, self.ty + offset_ty, self.group, self.type, self.decay, vx, vy, vz))
+      self.particles.append(Particle(self.game, self.tx + offset_tx, self.ty + offset_ty, self.z, self.group, self.type, self.decay, vx, vy, vz, self.friction))
       sys.stdout.flush()
 
     Drawable.handle_deletion(self.particles)

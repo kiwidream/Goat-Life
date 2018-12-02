@@ -15,7 +15,6 @@ class Drawable:
     else:
       self.x, self.y = tx, ty
 
-    self.origX, self.origY = 0, 0
     self.group = None
     self.sprites = []
     self.sprites_rel = []
@@ -26,10 +25,11 @@ class Drawable:
     self.hovered = False
     self.hud_element = hud_element
     self.batch = self.game.batch
+    self.target_state = 0
 
   def mouse_in_bounds(self, x, y):
     sprite = self.get_visible_sprite()
-    sx,sy = self.x - self.sprites_rel[self.visible_sprite][0] if self.visible_sprite else 0, self.y
+    sx,sy = self.x - self.sprites_rel[self.visible_sprite][0] if self.visible_sprite is not None else 0, self.y
     in_bounds = x >= sx and x <= sx + sprite.width and y >= sy and y <= sy + sprite.height
     return in_bounds
 
@@ -64,7 +64,7 @@ class Drawable:
       drawables.pop(i + offset)
       offset -= 1
 
-  def init_sprite(self, filename, group, rel_x=0, rel_y=0):
+  def init_sprite(self, filename, group, rel_x=0, rel_y=0, cull=True):
     if filename not in self.game.bin_loaded.keys():
       image = pyglet.image.load('sprites/'+filename)
       texture = self.game.bin.add(image)
@@ -75,9 +75,10 @@ class Drawable:
     i = len(self.sprites)
 
     self.sprites_rel.append((rel_x, rel_y))
-
     s_x, s_y = self.sprite_coords(i)
+
     self.sprites.append(pyglet.sprite.Sprite(texture, s_x, s_y, batch=self.batch, group=group))
+    self.game.cull_sprites.append(self.sprites[i])
 
     return i
 
@@ -89,11 +90,17 @@ class Drawable:
       return (0, 0)
     sx = self.x + self.sprites_rel[i][0] + self.all_sprites_rel[0]
     sy = self.y + self.sprites_rel[i][1] + self.all_sprites_rel[1] + self.z
+
+    if self.target_state == 1:
+      sx += self.game.dungeon_offset
+      sy += self.game.dungeon_offset
+
     return sx, sy
 
 
   def delete(self):
     for sprite in self.sprites:
+      self.game.cull_sprites.remove(sprite)
       sprite.delete()
 
   def update(self, dt):
