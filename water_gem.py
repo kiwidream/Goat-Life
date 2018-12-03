@@ -5,8 +5,8 @@ from item import Item
 
 class WaterGem(Item):
 
-  def __init__(self, count):
-    super().__init__(count, Item.WATER_GEM)
+  def __init__(self, game, count):
+    super().__init__(game, count, Item.WATER_GEM)
     self.name = 'Water Element'
 
   def sprite_name(self):

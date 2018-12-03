@@ -28,7 +28,11 @@ class Game:
   TILE_HEIGHT = 32
   TILE_WIDTH = 32
 
+  CHEST_XP = 5
+  KILL_XP = 5
+
   def __init__(self):
+    self.entity_count = 0
     self.cull_sprites = []
     self.dungeon_offset = self.TILE_WIDTH * 512
     self.window = pyglet.window.Window()
@@ -38,6 +42,15 @@ class Game:
     self.world = World(self)
     self.cursor = self.window.CURSOR_DEFAULT
     self.set_cursor = None
+
+  def aabb_intersects(self, hitbox1, hitbox2):
+    xa1, ya1, xb1, yb1 = hitbox1
+    xa2, ya2, xb2, yb2 = hitbox2
+
+    xt = xa1 < xb2 and xb1 > xa2
+    yt = ya1 < yb2 and yb1 > ya2
+
+    return xt and yt
 
 game = Game()
 fps_display = pyglet.clock.ClockDisplay()
@@ -79,15 +92,19 @@ def on_mouse_motion(x, y, dx, dy):
 
 @game.window.event
 def on_mouse_press(x, y, button, modifiers):
+  if button == mouse.RIGHT:
+    if game.world.inventory:
+      game.world.inventory.on_right_click(x,y)
   if button == mouse.LEFT:
     gx, gy = transform_mouse_coords(x, y)
-    game.world.on_click(gx, gy)
-
     hx, hy = transform_mouse_coords(x, y, True)
+
     if game.world.inventory:
-      game.world.inventory.on_click(hx, hy)
-
-
+      if not game.world.inventory.on_click(hx, hy):
+        game.world.on_click(gx, gy)
+        game.world.inventory.selected_i = None
+    else:
+      game.world.on_click(gx, gy)
 
 
 @game.window.event

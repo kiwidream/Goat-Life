@@ -15,7 +15,10 @@ class Character(Entity):
 
   def __init__(self, game, tx, ty, group):
     super().__init__(game, tx, ty, group)
-    self.speed = 1
+    self.particle_hitbox = (0,0,7,18)
+    self.speed = 1.5
+    self.level = 1
+    self.xp = 0
     self.direction = self.DOWN
     for i in range(4, 8):
       self.init_sprite('character_p_'+str(i)+'.png', group)
@@ -27,19 +30,20 @@ class Character(Entity):
     vel_x = 0
     vel_y = 0
 
-    if self.game.keys[key.D]:
-      vel_x = self.speed
-      self.direction = self.RIGHT
-    elif self.game.keys[key.A]:
-      vel_x = -self.speed
-      self.direction = self.LEFT
+    if self.game.world.progression != self.game.world.TITLE and self.game.world.progression != self.game.world.TITLE_COMPLETE:
+      if self.game.keys[key.D]:
+        vel_x = self.speed
+        self.direction = self.RIGHT
+      elif self.game.keys[key.A]:
+        vel_x = -self.speed
+        self.direction = self.LEFT
 
-    if self.game.keys[key.W]:
-      vel_y = self.speed
-      self.direction = self.UP
-    elif self.game.keys[key.S]:
-      vel_y = -self.speed
-      self.direction = self.DOWN
+      if self.game.keys[key.W]:
+        vel_y = self.speed
+        self.direction = self.UP
+      elif self.game.keys[key.S]:
+        vel_y = -self.speed
+        self.direction = self.DOWN
 
     if vel_x != 0 or vel_y != 0:
       angle = math.atan2(vel_y, vel_x)
@@ -52,5 +56,8 @@ class Character(Entity):
     self.set_visible_sprite(self.direction-4)
     sprite = self.get_visible_sprite()
 
-    sys.stdout.flush()
-    #sprite.group = self.game.world.group_for(self.ty-3)
+    sprite.group = self.game.world.group_for(self.ty - 1)
+
+    if self.xp > 100:
+      self.level += 1
+      self.xp = 0

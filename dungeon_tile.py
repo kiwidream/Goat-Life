@@ -3,6 +3,10 @@ import sys
 import random
 from drawable import Drawable
 from dungeon_template import DungeonTemplate
+from chest import Chest
+from enemy import Enemy
+from mage import Mage
+from pyglet.window import key
 
 class DungeonTile(Drawable):
 
@@ -30,9 +34,13 @@ class DungeonTile(Drawable):
   TYPE_EMPTY = 0
   TYPE_FLOOR = 1
   TYPE_WALL = 2
+  TYPE_CHEST = 3
+  TYPE_CHEST_STARTER = 4
+  TYPE_EXIT = 5
 
   def __init__(self, game, tx, ty, group, type):
     super().__init__(game, tx, ty)
+
     self.hitboxes = set()
     self.type = type
     self.group = group
@@ -40,6 +48,25 @@ class DungeonTile(Drawable):
     self.group_floor = pyglet.graphics.OrderedGroup(group.order - 1)
     self.width = self.game.TILE_WIDTH
     self.height = self.game.TILE_HEIGHT
+    self.will_spawn_chest = False
+    self.will_spawn_entity = False
+    self.chest = None
+    self.entities = []
+    self.spawn_exit = False
+    self.can_spawn_entity = True
+    self.enemies = [Enemy, Mage]
+
+    if type == self.TYPE_FLOOR:
+      self.will_spawn_entity = random.random() < self.game.world.character.level * 0.1
+
+    if type == self.TYPE_CHEST or type == self.TYPE_CHEST_STARTER:
+      self.chest_type = 0 if type == self.TYPE_CHEST_STARTER else 1
+      self.will_spawn_chest = random.random() < 0.8 or type == self.TYPE_CHEST_STARTER
+      self.type = self.TYPE_FLOOR
+
+    if type == self.TYPE_EXIT:
+      self.spawn_exit = True
+      self.type = self.TYPE_FLOOR
 
   def tile_at(self, dx, dy, type=2):
     tile = self.game.world.tile_at(self.tx+dx, self.ty+dy, self.game.world.DUNGEON)
@@ -48,8 +75,49 @@ class DungeonTile(Drawable):
   def tile_sprite(self, type):
     return self.init_sprite('tile_stone_'+str(type)+'.png', self.group_floor if type == self.FLOOR else self.group)
 
-  def init_tile(self):
+  def draw(self):
+    if self.chest:
+      self.chest.draw()
 
+    for entity in self.entities:
+      entity.draw()
+
+    super().draw()
+
+  def update(self, dt):
+    Drawable.handle_deletion(self.entities)
+
+    if self.chest:
+      self.chest.update(dt)
+
+    offset = 0
+    if self.spawn_exit:
+      offset = self.game.dungeon_offset / self.game.TILE_WIDTH
+
+    for entity in self.entities:
+      entity.update(dt)
+
+    super().update(dt)
+
+    if self.spawn_exit and self.game.world.state_dt > 4 and self.game.world.progression == self.game.world.FREE_ROAM and abs(self.game.world.character.tx - offset - self.tx) < 0.6 and abs(self.game.world.character.ty - offset - self.ty - 0.5) < 0.6:
+
+      if len(self.game.world.textbox.text) == 0 or self.game.keys[key.E]:
+        self.game.world.textbox.text = ["Press E to exit the crevice."]
+        self.game.world.textbox.faces = [None]
+
+        if self.game.keys[key.E]:
+          self.game.world.move_to = self.game.world.OVERWORLD
+
+  def delete(self):
+    if self.chest:
+      self.chest.delete()
+
+    for entity in self.entities:
+      entity.delete()
+
+    super().delete()
+
+  def init_tile(self):
     dirs = {
       'N':  (0,1),
       'NW': (-1,1),
@@ -61,9 +129,49 @@ class DungeonTile(Drawable):
       'SW': (-1,-1)
     }
 
+    floors = {key: self.tile_at(*dirs[key], self.TYPE_FLOOR) for key in dirs.keys()}
+    walls = {key: self.tile_at(*dirs[key]) for key in dirs.keys()}
+    surround_count = sum([int(walls[k]) for k in ['N','E','S','W']])
+    offset = self.game.dungeon_offset / self.game.TILE_WIDTH
+
+    if self.will_spawn_entity and self.can_spawn_entity:
+      enemy_type = self.enemies[0] if random.random() >= self.game.world.character.level * 0.04 else self.enemies[1]
+      self.entities.append(enemy_type(self.game, self.tx + offset, self.ty + offset, self.group))
+
+    if self.will_spawn_chest:
+
+      if (surround_count == 3 and not walls['E']) or (walls['N'] and walls['W'] and surround_count == 2 and walls['SW']):
+        ori = Chest.LEFT
+        cx, cy = Chest.OFFSET[ori]
+        self.hitboxes.add((cx+2, cy, cx+8, cy+21))
+      elif surround_count == 3 and not walls['W'] or (walls['N'] and walls['E'] and surround_count == 2 and walls['NE']):
+        ori = Chest.RIGHT
+        cx, cy = Chest.OFFSET[ori]
+        self.hitboxes.add((cx, cy, cx+6, cy+21))
+      elif surround_count == 3 and not walls['N']:
+        ori = Chest.BOTTOM
+        cx, cy = Chest.OFFSET[ori]
+        self.hitboxes.add((cx, cy, cx+17, cy+7))
+      elif walls['N'] or (floors['N'] and floors['S'] and floors['E'] and floors['W']):
+        ori = Chest.TOP
+        cx, cy = Chest.OFFSET[ori]
+        self.hitboxes.add((cx, cy, cx+17, cy+10))
+      elif walls['W']:
+        ori = Chest.LEFT
+        cx, cy = Chest.OFFSET[ori]
+        self.hitboxes.add((cx+2, cy, cx+8, cy+21))
+      elif walls['E']:
+        ori = Chest.RIGHT
+        cx, cy = Chest.OFFSET[ori]
+        self.hitboxes.add((cx, cy, cx+6, cy+21))
+      else:
+        ori = Chest.BOTTOM
+        cx, cy = Chest.OFFSET[ori]
+        self.hitboxes.add((cx, cy, cx+17, cy+7))
+
+      self.chest = Chest(self.game, self.tx + offset, self.ty + offset, self.group, ori, self.chest_type)
+
     if self.type == self.TYPE_WALL:
-      walls = {key: self.tile_at(*dirs[key]) for key in dirs.keys()}
-      floors = {key: self.tile_at(*dirs[key], self.TYPE_FLOOR) for key in dirs.keys()}
       empty = {key: self.tile_at(*dirs[key], self.TYPE_EMPTY) for key in dirs.keys()}
 
       corners = []
@@ -113,8 +221,6 @@ class DungeonTile(Drawable):
           self.hitboxes.add((0,0,self.width,17))
           corners.append(self.BOTTOM_LEFT)
 
-      surround_count = sum([int(walls[k]) for k in ['N','E','S','W']])
-
       if surround_count == 1 and floors['S']:
         self.hitboxes.add((0,0,self.width,self.height))
         return self.tile_sprite(self.CENTER_BOTTOM)
@@ -150,3 +256,6 @@ class DungeonTile(Drawable):
 
     if self.type != self.TYPE_EMPTY:
       self.tile_sprite(self.FLOOR)
+
+      if self.spawn_exit:
+        self.tile_sprite("exit")

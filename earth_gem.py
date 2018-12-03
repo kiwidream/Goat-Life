@@ -5,8 +5,8 @@ from item import Item
 
 class EarthGem(Item):
 
-  def __init__(self, count):
-    super().__init__(count, Item.EARTH_GEM)
+  def __init__(self, game, count):
+    super().__init__(game, count, Item.EARTH_GEM)
     self.name = 'Earth Element'
 
   def sprite_name(self):

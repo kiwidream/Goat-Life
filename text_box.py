@@ -5,15 +5,15 @@ from drawable import Drawable
 
 class TextBox(Drawable):
 
-  UPPER_LEFT = 0
-  BOTTOM_LEFT = 1
-  TOP = 2
-  BOTTOM = 3
-  LEFT = 4
-  MIDDLE = 5
-  UPPER_RIGHT = 6
-  BOTTOM_RIGHT = 7
-  RIGHT = 8
+  UPPER_LEFT = 1
+  BOTTOM_LEFT = 2
+  TOP = 3
+  BOTTOM = 4
+  LEFT = 5
+  MIDDLE = 6
+  UPPER_RIGHT = 7
+  BOTTOM_RIGHT = 8
+  RIGHT = 9
 
   ALL = range(9)
 
@@ -36,6 +36,8 @@ class TextBox(Drawable):
     self.target_rel_y = 0
     self.rel_y = -self.height*2
     self.y = self.base_y + self.rel_y
+
+    self.blur_i = self.init_sprite('blur.png', group)
 
     # Upper left
     self.init_sprite('textbox_0.png', group, 0, height - self.corner_size)
@@ -81,6 +83,8 @@ class TextBox(Drawable):
       self.sprites[new_i].visible = False
       self.sprites[new_i].scale_x = 2
       self.sprites[new_i].scale_y = 2
+
+
 
   def update(self, dt):
     self.need_pos_update = True
@@ -160,6 +164,8 @@ class TextBox(Drawable):
       self.all_sprites_rel = (self.all_sprites_rel[0], 1 - self.all_sprites_rel[1])
       self.bounce_dt = 0
       self.text_pos_changed = True
+
+    self.sprites_rel[self.blur_i] = (-self.all_sprites_rel[0]-10, -self.all_sprites_rel[1]-10-self.rel_y)
 
     super().update(dt)
 

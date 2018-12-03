@@ -5,6 +5,7 @@ from drawable import Drawable
 from entity import Entity
 from tile import Tile
 from grass_tuft import GrassTuft
+from pyglet.window import key
 
 class DungeonEntry(Entity):
 
@@ -36,6 +37,16 @@ class DungeonEntry(Entity):
 
     self.set_visible_sprite(self.progress)
 
+    if self.progress == 3 and self.game.world.state_dt > 4 and self.remove_character and self.char_dt <= 0 and self.game.world.progression == self.game.world.FREE_ROAM:
+      if abs(self.game.world.character.tx - self.tx) < 0.6 and abs(self.game.world.character.ty - self.ty - 0.75) < 0.6:
+        if len(self.game.world.textbox.text) == 0 or self.game.keys[key.E] or self.game.keys[key.Q]:
+          self.game.world.textbox.text = ["Press E to enter the crevice. Press Q to sacrifice another goat."]
+          self.game.world.textbox.faces = [None]
+          if self.game.keys[key.E]:
+            self.game.world.move_to = self.game.world.DUNGEON
+          if self.game.keys[key.Q]:
+            self.game.world.sacrifice_mode = True
+
     if self.progress >= 2:
       if self.remove_character and self.char_dt > 0:
         self.char_dt -= dt
@@ -45,6 +56,7 @@ class DungeonEntry(Entity):
       state = 1 if self.game.world.sacrifice_mode else 0
       self.sprites[self.char_i[1-state]].visible = False
       self.sprites[self.char_i[state]].visible = True
+      self.sprites[self.char_i[state]].group = self.game.world.group_for(self.ty + (self.char_dt * 8 + 4) / self.game.TILE_HEIGHT)
       self.sprites[self.char_i[state]].opacity = int(max(min(255, self.char_dt * 150), 0))
       self.sprites_rel[self.char_i[state]] = (7, self.char_dt * 8 + 4)
       self.need_pos_update = True

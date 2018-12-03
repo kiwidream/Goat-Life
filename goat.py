@@ -20,9 +20,10 @@ class Goat(Entity):
     self.anim_eat2_dt = 0
     self.state = self.STANDING
     self.target_dt = 0
-    self.col = (255, 255, 255)
+
     self.dying = False
     self.dying_dt = 0
+    self.hunger_dt = 0
 
     for i in range(1, 4):
       self.init_sprite('goat_'+str(i)+'.png', group)
@@ -35,7 +36,6 @@ class Goat(Entity):
     self.set_visible_sprite(self.state)
 
     sprite = self.get_visible_sprite()
-    sprite.color = self.col
 
     if self.dying and self.dying_dt < 4:
       self.state = self.STANDING
@@ -51,6 +51,9 @@ class Goat(Entity):
 
     if not self.dying:
       if self.target is None:
+        self.hunger_dt += dt
+        if self.hunger_dt >= 30:
+          self.dying = True
         self.target_dt += dt
         if self.target_dt > 0.4:
           self.target_dt = 0
@@ -64,6 +67,7 @@ class Goat(Entity):
             self.target = tile.grass_tufts[0]
       elif self.target_reached:
         self.state = self.EATING[self.anim_eating_offset]
+        self.hunger = 0
 
         self.anim_eat2_dt += dt
         self.anim_eat_dt += dt
@@ -101,5 +105,5 @@ class Goat(Entity):
 
     self.need_pos_update = True
 
-    self.group = new_group = self.game.world.group_for(self.ty)
+    self.group = new_group = self.game.world.group_for(self.ty-1)
     chevron_sprite.group, sprite.group = new_group, new_group
