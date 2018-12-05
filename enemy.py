@@ -15,11 +15,11 @@ class Enemy(Entity):
         self.init_sprite('enemy_skeleton_'+str(i)+'.png', group)
     self.particle_hitbox = (2,-1,12,19)
     self.hitbox = (0,0,7,3)
-    self.target_min_dist = 0.5
+    self.target_min_dist = 0.65
     self.target_max_dist = 2.5
     self.health = 3
     self.attack_dt = 1.6
-    self.speed = random.random() * 0.4 + 0.25
+    self.speed = random.random() * 0.4 + 0.35
     self.attack_period = 1.6
     self.anim_dead = 0
     self.target = self.game.world.character

@@ -56,7 +56,8 @@ class Inventory(Drawable):
   def remove_item(self, id, dcount=1):
     removed_s_i = None
     found = False
-    for i in range(len(self.items)):
+    i = 0
+    while i < len(self.items):
       item = self.items[i]
       if item.id == id:
         found = True
@@ -68,6 +69,8 @@ class Inventory(Drawable):
           removed_s_i = item.sprite_i
           self.sprites_to_remove.append(removed_s_i)
           self.items.pop(i)
+          i -= 1
+      i += 1
 
     if not found:
       return False
@@ -98,14 +101,13 @@ class Inventory(Drawable):
   def add_spell(self, spell):
     s_i = self.init_sprite(spell.sprite_name(), self.group)
     spell.sprite_i = s_i
-    self.obtained_spells.append(spell.id)
     self.sprites[s_i].scale_x = 2
     self.sprites[s_i].scale_y = 2
     self.spells.append(spell)
 
   def add_item(self, item):
     for existing_item in self.items:
-      if existing_item.name == item.name:
+      if existing_item.id == item.id:
         existing_item.count += item.count
         existing_item.label = self.init_label(existing_item.count_anim)
         return

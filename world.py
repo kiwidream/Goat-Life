@@ -49,7 +49,7 @@ class World(Drawable):
     self.inventory = None
     self.tiles = [[], []]
     self.entities = [[], []]
-    self.groups = [[pyglet.graphics.OrderedGroup(self.HEIGHT[j] * self.GROUPS_PER_TILE - i) for i in range(self.HEIGHT[j]*self.GROUPS_PER_TILE)] for j in range(2)]
+    self.groups = [[pyglet.graphics.OrderedGroup(self.HEIGHT[j] * self.GROUPS_PER_TILE - i) for i in range((self.HEIGHT[j]+1)*self.GROUPS_PER_TILE)] for j in range(2)]
 
     self.dungeon_entry = None
     self.skulls_collected = False
@@ -89,7 +89,10 @@ class World(Drawable):
       if ty > off - 20:
         ty -= off
 
-    return self.groups[layer][int(ty // 0.03215)]
+    if ty < 0 or ty >= len(self.groups[layer]):
+      return self.groups[layer][0]
+
+    return self.groups[layer][int((ty+1) // 0.03215)]
 
   def tile_at(self, tx, ty, layer=0):
     if tx < 0 or tx >= self.WIDTH[layer] or ty < 0 or ty >= self.HEIGHT[layer]:
@@ -412,7 +415,7 @@ class World(Drawable):
           gems = [WaterGem, EarthGem, FireGem]
           for i in range(len(gems)):
             gem = gems[i]
-            count = random.randint(0, max(self.game.world.character.level*5-i*2+3,0))
+            count = random.randint(0, max(self.game.world.character.level*5-i*2+2,0))
             if count > 0:
               self.inventory.add_item(gem(self.game, count))
 

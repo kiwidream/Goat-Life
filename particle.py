@@ -89,8 +89,6 @@ class Particle(Drawable):
               yb1 += ety * self.game.TILE_WIDTH
               hitbox1 = (xa1, ya1, xb1, yb1)
 
-              sys.stdout.flush()
-
               if self.game.aabb_intersects(hitbox1, hitbox2):
                 entity.shove(None, self.vx, -self.vy)
                 entity.inflict_damage(self, 1)

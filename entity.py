@@ -17,6 +17,7 @@ class Entity(Drawable):
     self.dead = False
     self.target = None
     self.speed = 0.5
+    self.do_coll = True
     self.group = group
     self.last_dx = 0
     self.last_dy = 0
@@ -146,11 +147,46 @@ class Entity(Drawable):
 
     super().update(dt)
 
+  def delete(self):
+    for group in self.particle_groups:
+      group.delete()
+
+    super().delete()
+
   def move(self, dx, dy):
     self.tx += dx
     self.ty += dy
+
+    if not self.do_coll:
+      return
+
     intersect = False
-    if self.hitbox and self.game.world.state == self.game.world.DUNGEON:
+
+    offset = 0 if self.game.world.state == self.game.world.OVERWORLD else self.game.dungeon_offset / self.game.TILE_WIDTH
+    s_w = self.get_visible_sprite().width / self.game.TILE_WIDTH
+    s_h = self.get_visible_sprite().height / self.game.TILE_HEIGHT
+
+    if self.tx - offset < 0:
+      self.tx = offset
+      self.ty -= dy
+      return
+
+    if self.ty - offset < 0:
+      self.ty = offset
+      self.tx -= dx
+      return
+
+    if self.tx - offset + s_w > self.game.world.WIDTH[self.game.world.state]:
+      self.tx =  self.game.world.WIDTH[self.game.world.state] + offset - s_w
+      self.ty -= dy
+      return
+
+    if self.ty - offset + s_h > self.game.world.HEIGHT[self.game.world.state]:
+      self.ty = self.game.world.HEIGHT[self.game.world.state] + offset - s_h
+      self.tx -= dx
+      return
+
+    if self.hitbox and offset > 0:
       dirs = {
         'N':  (0,1),
         'NW': (-1,1),
@@ -162,7 +198,7 @@ class Entity(Drawable):
         'SW': (-1,-1),
         'NONE': (0,0)
       }
-      offset = self.game.dungeon_offset / self.game.TILE_WIDTH
+
 
       xa2, ya2, xb2, yb2 = self.hitbox
       xa2 += (self.tx - offset) * self.game.TILE_WIDTH

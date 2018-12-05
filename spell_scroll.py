@@ -13,6 +13,7 @@ class SpellScroll(Item):
     self.spell_id = spell_id
     self.name = 'Spell Scroll'
     self.usable = True
+    self.game.world.inventory.obtained_spells.append(spell_id)
 
   def sprite_name(self):
     return 'item_scroll_'+str(self.scroll_type)+'.png'

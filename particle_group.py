@@ -67,3 +67,9 @@ class ParticleGroup(Drawable):
   def draw(self):
     for particle in self.particles:
       particle.draw()
+
+  def delete(self):
+    for particle in self.particles:
+      particle.delete()
+
+    super().delete()

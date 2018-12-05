@@ -63,11 +63,11 @@ class Chest(Drawable):
 
         for i in range(len(gems)):
           gem = gems[i]
-          count = random.randint(0, max(self.game.world.character.level*4-i*2,0))
+          count = random.randint(0, max(self.game.world.character.level*5-i*2+1,0))
           if count > 0:
             self.contents.append(gem(self.game, count))
 
-        if random.random() < 0.15:
+        if random.random() < self.game.world.character.level * 0.05 + 0.045:
           keys = list(Spell.TYPE.keys())
           random.shuffle(keys)
 
@@ -76,7 +76,7 @@ class Chest(Drawable):
               self.contents.append(SpellScroll(self.game, s_id))
               break
 
-        if random.random() < self.game.world.character.level * 0.022:
+        if random.random() < self.game.world.character.level * 0.01 - 0.005:
           self.contents.append(GoatSkull(self.game, self.game.world.inventory.goal_skull_half))
           self.game.world.inventory.goal_skull_half = True
 

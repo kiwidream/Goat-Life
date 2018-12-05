@@ -58,20 +58,30 @@ class Camera(Drawable):
       dx = (self.target.x - cx) * dt
       dy = (self.target.y - cy) * dt
 
+    self.x += dx
+    self.y += dy
+
     cx, cy = self.x, self.y
 
-    if cx + dx >= self.width // 2 / self.zoom and cx + dx < self.game.world.WIDTH[self.game.world.state] * self.game.TILE_WIDTH - self.width // 2 / self.zoom:
-      self.x += dx
+    min_x = self.width // 2 / self.zoom
+    min_y = self.height // 2 / self.zoom
+    max_x = self.game.world.WIDTH[self.game.world.state] * self.game.TILE_WIDTH - self.width // 2 / self.zoom
+    max_y = self.game.world.HEIGHT[self.game.world.state] * self.game.TILE_HEIGHT - self.height // 2 / self.zoom
 
-    if cy + dy >= self.height // 2 / self.zoom and cy + dy < self.game.world.HEIGHT[self.game.world.state] * self.game.TILE_HEIGHT - self.height // 2 / self.zoom:
-      self.y += dy
+    if cx + dx < min_x:
+      self.x = cx = min_x
 
+    if cx + dx >= max_x:
+      self.x = cx = max_x
 
+    if cy + dy < min_y:
+      self.y = cy = min_y
+
+    if cy + dy >= max_y:
+      self.y = cy = max_y
 
     self.vx *= 0.92
     self.vy *= 0.92
-
-
 
     #if self.game.keys[key.W]:
     #  self.vy = self.vy + (self.speed / self.zoom - self.vy) * 0.6

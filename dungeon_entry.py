@@ -16,6 +16,7 @@ class DungeonEntry(Entity):
     self.char_dt = 0
     self.group = group
     self.do_bounce = False
+    self.do_coll = False
     self.remove_character = False
     self.spawn_smoke()
     for i in range(0, 4):
@@ -36,6 +37,8 @@ class DungeonEntry(Entity):
         self.progress_dt = 0
 
     self.set_visible_sprite(self.progress)
+    sprite = self.get_visible_sprite()
+    sprite.group = self.game.world.group_for(self.ty + 0.1)
 
     if self.progress == 3 and self.game.world.state_dt > 4 and self.remove_character and self.char_dt <= 0 and self.game.world.progression == self.game.world.FREE_ROAM:
       if abs(self.game.world.character.tx - self.tx) < 0.6 and abs(self.game.world.character.ty - self.ty - 0.75) < 0.6:

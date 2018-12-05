@@ -15,8 +15,8 @@ class Mage(Enemy):
       self.init_sprite('character_d_'+str(i)+'.png', group)
     self.particle_hitbox = (2,-1,14,16)
     self.hitbox = (0,0,7,3)
-    self.target_min_dist = 1
-    self.target_max_dist = 3
+    self.target_min_dist = 1.5
+    self.target_max_dist = 4
     self.health = 8
     self.attack_dt = 1.6
     self.speed = random.random() * 0.4 + 0.3

@@ -19,6 +19,7 @@ class Character(Entity):
     self.speed = 1.5
     self.level = 1
     self.xp = 0
+    self.health_dt = 0
     self.direction = self.DOWN
     for i in range(4, 8):
       self.init_sprite('character_p_'+str(i)+'.png', group)
@@ -29,6 +30,12 @@ class Character(Entity):
     super().update(dt)
     vel_x = 0
     vel_y = 0
+
+    if self.health < 8:
+      self.health_dt += dt
+      if self.health_dt > 20:
+        self.health += 1
+        self.health_dt = random.random() * 5
 
     if self.game.world.progression != self.game.world.TITLE and self.game.world.progression != self.game.world.TITLE_COMPLETE:
       if self.game.keys[key.D]:
@@ -56,7 +63,7 @@ class Character(Entity):
     self.set_visible_sprite(self.direction-4)
     sprite = self.get_visible_sprite()
 
-    sprite.group = self.game.world.group_for(self.ty - 1)
+    sprite.group = self.game.world.group_for(self.ty-1)
 
     if self.xp > 100:
       self.level += 1

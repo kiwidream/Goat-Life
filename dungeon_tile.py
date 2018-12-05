@@ -45,7 +45,7 @@ class DungeonTile(Drawable):
     self.type = type
     self.group = group
     self.target_state = self.game.world.DUNGEON
-    self.group_floor = pyglet.graphics.OrderedGroup(group.order - 1)
+    self.group_floor = pyglet.graphics.OrderedGroup(group.order-1)
     self.width = self.game.TILE_WIDTH
     self.height = self.game.TILE_HEIGHT
     self.will_spawn_chest = False
@@ -135,7 +135,7 @@ class DungeonTile(Drawable):
     offset = self.game.dungeon_offset / self.game.TILE_WIDTH
 
     if self.will_spawn_entity and self.can_spawn_entity:
-      enemy_type = self.enemies[0] if random.random() >= self.game.world.character.level * 0.04 else self.enemies[1]
+      enemy_type = self.enemies[0] if random.random() >= self.game.world.character.level * 0.08 - 0.05 else self.enemies[1]
       self.entities.append(enemy_type(self.game, self.tx + offset, self.ty + offset, self.group))
 
     if self.will_spawn_chest:
